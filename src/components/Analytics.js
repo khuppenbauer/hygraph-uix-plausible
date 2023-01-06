@@ -1,47 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { Wrapper, useFormSidebarExtension } from '@graphcms/uix-react-sdk';
+import ChartComponent from './Chart';
+import StatsComponent from './Stats';
 
-const baseUrl = 'https://plausible.io';
-const endPoint = '/api/v1/stats/aggregate';
-const period = '6mo';
-
-const Stats = () => {
+const AnalyticsComponent = () => {
   const {
     extension,
     form: { getFieldState },
   } = useFormSidebarExtension();
 
-  const [visitors, setVisitors] = useState(0);
-  const { sidebarConfig, config } = extension;
-  const { PLAUSIBLE_TOKEN: token } = config;
-  const { PLAUSIBLE_SITE_ID: siteId, SLUG_PREFIX: prefix, SLUG_FIELD: slug } = sidebarConfig;
-
+  const [page, setPage] = useState(null);
+  const { sidebarConfig } = extension;
+  const {
+    PLAUSIBLE_SITE_ID: siteId, PLAUSIBLE_DASHBOARD_AUTH: auth, SLUG_PREFIX: prefix, SLUG_FIELD: slug,
+  } = sidebarConfig;
   useEffect(() => {
     getFieldState(slug)
       .then((state) => {
-        const { value: page } = state;
-        const url = `${baseUrl}${endPoint}?site_id=${siteId}&period=${period}&filters=event:page==${prefix}${page}`;
-        const headers = new Headers();
-        headers.set('Authorization', `Bearer ${token}`);
-        const req = new Request(url, {
-          headers,
-          method: 'GET',
-        });
-        fetch(req)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.errors) {
-              throw new Error(`failed: ${JSON.stringify(data)}`);
-            }
-            const { results: { visitors: { value } } } = data;
-            setVisitors(value);
-          });
+        const { value } = state;
+        setPage(value);
       });
   }, [getFieldState, slug]);
 
-  return (
-    <div>Visitors: {visitors}</div>
-  );
+  if (page) {
+    const style = {
+      display: 'block',
+      color: '#ffffff',
+      paddingTop: '10px',
+      margin: '10px 0px',
+      background: 'rgb(0, 173, 159)',
+      border: 'none',
+      borderRadius: '4px',
+      cursor: 'pointer',
+      width: '100%',
+      height: '40px',
+      fontSize: '14px',
+      textAlign: 'center',
+      textDecoration: 'none',
+    };
+    return (
+      <>
+        <ChartComponent page={page} />
+        <StatsComponent page={page} />
+        <br />
+        { auth && <a style={style} href={`https://plausible.io/${siteId}?auth=${auth}&page=${prefix}${page}`} target="_blank">Dashboard</a>}
+      </>
+    );
+  }
+  return null;
 };
 
 const declaration = {
@@ -51,7 +57,7 @@ const declaration = {
   config: {
     PLAUSIBLE_TOKEN: {
       type: 'string',
-      displayName: 'Token',
+      displayName: 'API Token',
       required: true,
     },
   },
@@ -60,6 +66,11 @@ const declaration = {
       type: 'string',
       displayName: 'Site ID',
       required: true,
+    },
+    PLAUSIBLE_DASHBOARD_AUTH: {
+      type: 'string',
+      displayName: 'Dashboard Auth',
+      required: false,
     },
     SLUG_PREFIX: {
       type: 'string',
@@ -76,7 +87,7 @@ const declaration = {
 
 const Analytics = () => (
   <Wrapper declaration={declaration}>
-    <Stats />
+    <AnalyticsComponent />
   </Wrapper>
 );
 
