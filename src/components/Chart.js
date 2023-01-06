@@ -69,10 +69,11 @@ const ChartComponent = ({ page }) => {
   const [chartData, setChartData] = useState(null);
   const { sidebarConfig, config } = extension;
   const { PLAUSIBLE_TOKEN: token } = config;
-  const { PLAUSIBLE_SITE_ID: siteId, SLUG_PREFIX: prefix } = sidebarConfig;
+  const { PLAUSIBLE_SITE_ID: siteId } = sidebarConfig;
+  const prefix = sidebarConfig.SLUG_PREFIX || '/';
 
   useEffect(() => {
-    const url = `${baseUrl}${endPoint}?site_id=${siteId}&filters=event:page==${prefix}${page}**&metrics=${metrics}&period=${period}`;
+    const url = `${baseUrl}${endPoint}?site_id=${siteId}&filters=event:page==${prefix}${page}/&metrics=${metrics}&period=${period}`;
     const headers = new Headers();
     headers.set('Authorization', `Bearer ${token}`);
     const req = new Request(url, {

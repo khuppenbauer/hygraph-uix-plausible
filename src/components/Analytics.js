@@ -11,9 +11,9 @@ const AnalyticsComponent = () => {
 
   const [page, setPage] = useState(null);
   const { sidebarConfig } = extension;
-  const {
-    PLAUSIBLE_SITE_ID: siteId, PLAUSIBLE_DASHBOARD_AUTH: auth, SLUG_PREFIX: prefix, SLUG_FIELD: slug,
-  } = sidebarConfig;
+  const { PLAUSIBLE_SITE_ID: siteId, PLAUSIBLE_DASHBOARD_AUTH: auth, SLUG_FIELD: slug } = sidebarConfig;
+  const prefix = sidebarConfig.SLUG_PREFIX || '/';
+
   useEffect(() => {
     getFieldState(slug)
       .then((state) => {
@@ -43,7 +43,7 @@ const AnalyticsComponent = () => {
         <ChartComponent page={page} />
         <StatsComponent page={page} />
         <br />
-        { auth && <a style={style} href={`https://plausible.io/${siteId}?auth=${auth}&page=${prefix}${page}`} target="_blank">Dashboard</a>}
+        { auth && <a style={style} href={`https://plausible.io/${siteId}?auth=${auth}&page=${prefix}${page}/`} target="_blank">Dashboard</a>}
       </>
     );
   }
